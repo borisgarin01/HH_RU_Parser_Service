@@ -61,7 +61,7 @@ namespace HH_RU_ParserService
 
         public async Task ImportVacanciesFromHH_RU_ViaPI_ToPostgresAsync(int page)
         {
-            var httpResponseMessage = await httpClient.GetAsync($"https://api.hh.ru/vacancies?text=C%23&search_field=name&employment=full&schedule=remote&page={page}");
+            var httpResponseMessage = await httpClient.GetAsync($"https://api.hh.ru/vacancies?text=C%23&search_field=name&employment=full&schedule=remote&page={page}&experience=noExperience");
 
             if (httpResponseMessage.IsSuccessStatusCode)
             {
