@@ -167,18 +167,6 @@ namespace HH_RU_ParserService
                             });
                         }
 
-                        if (item.Salary != null)
-                        {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO Salaries(Id, SalaryFrom, SalaryTo, Currency, Gross) VALUES(@Id, @SalaryFrom, @SalaryTo, @Currency, @Gross) ON CONFLICT DO NOTHING;", new
-                            {
-                                item.Id,
-                                SalaryFrom = item.Salary.From,
-                                SalaryTo = item.Salary.To,
-                                item.Salary.Currency,
-                                item.Salary.Gross
-                            });
-                        }
-
                         if (item.Address != null)
                         {
                             if (item.Address.Metro != null)
@@ -252,6 +240,20 @@ namespace HH_RU_ParserService
                             item.IsAdvVacancy,
                             ExperienceId = item.Experience.Id
                         });
+
+                        if (item.Salary != null)
+                        {
+                            await npgsqlConnection.ExecuteAsync("INSERT INTO Salaries(Id, SalaryFrom, SalaryTo, Currency, Gross) VALUES(@Id, @SalaryFrom, @SalaryTo, @Currency, @Gross) ON CONFLICT DO NOTHING;", new
+                            {
+                                item.Id,
+                                SalaryFrom = item.Salary.From,
+                                SalaryTo = item.Salary.To,
+                                item.Salary.Currency,
+                                item.Salary.Gross
+                            });
+                        }
+
+                        
 
                         if (item.Snippet != null)
                         {
