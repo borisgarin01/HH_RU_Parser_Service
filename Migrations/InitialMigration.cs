@@ -85,7 +85,7 @@ namespace HH_RU_ParserService.Migrations
                     Name varchar(255) not null,
                     Url varchar(255) not null unique,
                     AlternateUrl varchar(255) not null unique,
-                    LogosUrlsOriginal varchar(255) not null,
+                    LogosUrlsOriginal varchar(255) null unique,
                     constraint FK_LogosUrlsOriginal
                     FOREIGN KEY (LogosUrlsOriginal) 
                     REFERENCES LogosUrls (Original),
