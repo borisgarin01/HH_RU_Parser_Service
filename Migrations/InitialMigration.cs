@@ -141,7 +141,11 @@ namespace HH_RU_ParserService.Migrations
                     AcceptIncompleteResumes boolean null,
                     BrandingId varchar(255) null,
                     FOREIGN KEY (BrandingId)
-                    REFERENCES Brandings(Id));
+                    REFERENCES Brandings(Id),
+                    ProfessionalRoleId varchar(255) null,
+                    FOREIGN KEY (ProfessionalRoleId)
+                    REFERENCES ProfessionalRoles(Id));
+
                 CREATE TABLE Salaries(Id varchar(255) not null unique,
                     SalaryFrom int null,
                     SalaryTo int null,
