@@ -33,137 +33,126 @@ namespace HH_RU_ParserService.Migrations
 
         public override void Up()
         {
-            Create.Table("Addresses")
-                .WithColumn("City").AsString().Nullable()
-                .WithColumn("Metro_Id").AsString().Nullable()
-                .WithColumn("Street").AsString().Nullable()
-                .WithColumn("Building").AsString().Nullable()
-                .WithColumn("Lat").AsDouble().Nullable()
-                .WithColumn("Lng").AsDouble().Nullable()
-                .WithColumn("Description").AsString().Nullable()
-                .WithColumn("Raw").AsString().Nullable()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("DB_Id").AsGuid().NotNullable().PrimaryKey().Identity();
+            Execute.Sql(@"
+                CREATE TABLE Metros(
+                    StationName varchar(255) not null unique,
+                    LineName varchar(255) not null unique,
+                    StationId varchar(255) not null unique,
+                    LineId varchar(255) not null unique,
+                    Lat double precision null unique,
+                    Lng double precision null unique);
 
-            Create.Table("Areas")
-                .WithColumn("DB_Id").AsGuid().NotNullable().PrimaryKey().Identity()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("Name").AsString().Nullable()
-                .WithColumn("Url").AsString().Nullable();
+                CREATE TABLE Addresses(City varchar(255) not null,
+                    Street varchar(255) null,
+                    Building varchar(255) null,
+                    Lat double precision null,
+                    Lng double precision null,
+                    Raw varchar(8191) null,
+                    MetroId varchar(255) null,
+                    FOREIGN KEY (MetroId) 
+                    REFERENCES Metros (StationId),
+                    Id varchar(255) primary key not null unique);
 
-            Create.Table("Brandings")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Type").AsString().Nullable()
-                .WithColumn("Tariff").AsString().Nullable();
+                CREATE TABLE MetroStations(
+                    StationName varchar(255) not null unique,
+                    LineName varchar(255) not null unique,
+                    StationId varchar(255) not null unique,
+                    LineId varchar(255) not null unique,
+                    Lat double precision null unique,
+                    Lng double precision null unique,
+                    AddressId varchar(255) null,
+                    FOREIGN KEY (AddressId) REFERENCES Addresses(Id)
+                    );
 
-            Create.Table("Employers")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("Name").AsString().Nullable()
-                .WithColumn("URL").AsString().Nullable()
-                .WithColumn("Alternate_URL").AsString().Nullable()
-                .WithColumn("Vacancies_URL").AsString().Nullable()
-                .WithColumn("Accredited_It_Employer").AsBoolean().Nullable()
-                .WithColumn("Logo_Urls_Id").AsBoolean().Nullable() // Original
-                .WithColumn("Trusted").AsBoolean();
+                CREATE TABLE Areas(Id varchar(255) not null unique,
+                    Name varchar(255) not null unique,
+                    Url varchar(255) not null unique);
 
-            Create.Table("Employments")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("Name").AsString().Nullable();
+                CREATE TABLE Salaries(Id varchar(255) not null unique,
+                    SalaryFrom int null,
+                    SalaryTo int null,
+                    Currency varchar(255) not null,
+                    Gross boolean null);
 
-            Create.Table("Experiences")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("Name").AsString().Nullable();
+                CREATE TABLE Types(Id varchar(63) not null primary key unique,
+                    Name varchar(63) not null unique);
 
-            Create.Table("InsidersInterviews")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("URL").AsString().Nullable();
+                CREATE TABLE LogosUrls(_240 varchar(255) null unique,
+                    _90 varchar(255) null unique,
+                    Original varchar(255) not null primary key unique);
 
-            Create.Table("Items")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("Premium").AsBoolean().Nullable()
-                .WithColumn("Name").AsString().Nullable()
-                .WithColumn("Has_Test").AsBoolean().Nullable()
-                .WithColumn("Response_Letter_Required").AsBoolean().Nullable()
-                .WithColumn("Created_At").AsString().Nullable()
-                .WithColumn("Archived").AsBoolean().Nullable()
-                .WithColumn("Apply_Alternate_URL").AsString().Nullable()
-                .WithColumn("Show_Logo_In_Search").AsBoolean().Nullable()
-                .WithColumn("Address_Id").AsString().Nullable()
-                .WithColumn("Insider_Interview_Id").AsString().Nullable()
-                .WithColumn("Employer_Id").AsString().Nullable()
-                .WithColumn("Snippet_Id").AsString().Nullable()
-                .WithColumn("Schedule_Id").AsString().Nullable()
-                .WithColumn("Experience_Id").AsString().Nullable()
-                .WithColumn("Employment_Id").AsString().Nullable()
-                .WithColumn("Branding_Id").AsString().Nullable()
-                .WithColumn("URL").AsString().Nullable()
-                .WithColumn("Alternate_URL").AsString().Nullable()
-                .WithColumn("Accept_Temporary").AsBoolean().Nullable()
-                .WithColumn("Accept_Incomplete_Resumes").AsBoolean().Nullable()
-                .WithColumn("Is_Adv_Vacancy").AsBoolean().Nullable();
+                CREATE TABLE Employers(Id varchar(255) not null primary key unique,
+                    Name varchar(255) not null,
+                    Url varchar(255) not null unique,
+                    AlternateUrl varchar(255) not null unique,
+                    LogosUrlsOriginal varchar(255) not null,
+                    constraint FK_LogosUrlsOriginal
+                    FOREIGN KEY (LogosUrlsOriginal) 
+                    REFERENCES LogosUrls (Original),
+                    VacanciesUrl varchar(255) not null unique,
+                    AccreditedItEmployer boolean,
+                    Trusted boolean);
+    
+                
+                CREATE TABLE Schedules(Id varchar(63) not null primary key, Name varchar(63) not null unique);
 
-            Create.Table("Logo_URLs")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("_240").AsString().Nullable()
-                .WithColumn("_90").AsString().Nullable()
-                .WithColumn("Original").AsString().Nullable();
+                CREATE TABLE ProfessionalRoles(Id varchar(255) not null primary key, Name varchar(255) not null);
 
-            Create.Table("Metros")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Station_Name").AsString().Nullable()
-                .WithColumn("Line_Name").AsString().Nullable()
-                .WithColumn("Station_Id").AsString().Nullable()
-                .WithColumn("Line_Id").AsString().Nullable()
-                .WithColumn("Lat").AsDouble().Nullable()
-                .WithColumn("Lng").AsDouble().Nullable();
+                CREATE TABLE Experiences(Id varchar(63) not null primary key, Name varchar(63) not null unique);
 
-            Create.Table("Metro_Stations")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Station_Name").AsString().Nullable()
-                .WithColumn("Line_Name").AsString().Nullable()
-                .WithColumn("Station_Id").AsString().Nullable().PrimaryKey()
-                .WithColumn("Line_Id").AsString().Nullable()
-                .WithColumn("Lat").AsDouble().Nullable()
-                .WithColumn("Lng").AsDouble().Nullable();
+                CREATE TABLE Employments(Id varchar(63) not null primary key, Name varchar(63) not null unique);
 
-            Create.Table("Professional_Roles")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("Name").AsString().Nullable();
+                CREATE TABLE Brandings(Id varchar(255) not null primary key, 
+                    Type not null unique, Tariff null unique);
 
-            Create.Table("Roots")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Found").AsInt32().Nullable()
-                .WithColumn("Pages").AsInt32().Nullable()
-                .WithColumn("Per_Page").AsInt32().Nullable()
-                .WithColumn("Alternate_URL").AsString().Nullable();
+                CREATE TABLE InsidersInterviews(Id varchar(255) not null primary key,
+                    Url varchar(255) not null);
 
-            Create.Table("Salaries")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("From").AsInt32().Nullable()
-                .WithColumn("To").AsInt32().Nullable()
-                .WithColumn("Currency").AsString().Nullable()
-                .WithColumn("Gross").AsBoolean().Nullable();
+                CREATE TABLE Items(Id varchar(255) not null unique primary key,
+                    Premium boolean null,
+                    Name varchar(255) not null,
+                    HasTest boolean null,
+                    ResponseLetterRequired boolean null,
+                    AreaId varchar(255) not null,
+                    FOREIGN KEY(AreaId) REFERENCES Areas(Id),
+                    TypeId varchar(63) not null,
+                    FOREIGN KEY(TypeId) REFERENCES Types(Id),
+                    AddressId varchar(255) null,
+                    FOREIGN KEY (AddressId) REFERENCES Addresses(Id),
+                    PublishedAt varchar(255) null,
+                    CreatedAt varchar(255) null,
+                    Archived boolean null,
+                    ApplyAlternateUrl varchar(255) null,
+                    ShowLogoInSearch boolean null,
+                    InsiderInterviewId varchar(255) null,
+                    FOREIGN KEY (InsiderInterviewId) 
+                    REFERENCES InsidersInterviews (Id),
+                    Url varchar(255) not null unique,
+                    AlternateUrl varchar(255) not null unique,
+                    EmployerId varchar(255) not null,
+                    FOREIGN KEY (EmployerId) 
+                    REFERENCES Employers(Id),
+                    ScheduleId varchar(63) not null,
+                    FOREIGN KEY (ScheduleId) 
+                    REFERENCES Schedules(Id),
+                    AcceptTemporary boolean null,
+                    ExperienceId varchar(63) not null,
+                    FOREIGN KEY (ExperienceId) 
+                    REFERENCES Experiences(Id),
+                    EmploymentId varchar(63) not null,
+                    FOREIGN KEY (EmploymentId)
+                    REFERENCES Employments(Id),
+                    IsAdvVacancy boolean null,
+                    AcceptIncompleteResumes boolean null,
+                    BrandingId varchar(255) not null,
+                    FOREIGN KEY (BrandingId)
+                    REFERENCES Brandings(Id));
 
-            Create.Table("Schedules")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("Name").AsString().Nullable();
-
-            Create.Table("Snippets")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Requirement").AsString().Nullable()
-                .WithColumn("Responsibility").AsString().Nullable();
-
-            Create.Table("Types")
-                .WithColumn("DB_Id").AsGuid().NotNullable().Identity().PrimaryKey()
-                .WithColumn("Id").AsString().Nullable()
-                .WithColumn("Name").AsString().Nullable();
+                CREATE TABLE Snippets(Id varchar(255) not null unique primary key,
+                    FOREIGN KEY (Id) REFERENCES Items(Id),
+                    Requirement varchar(8191) default 'Not set',
+                    Responsibility varchar(8191) default 'Not set');
+            ");
         }
     }
 }
