@@ -103,7 +103,7 @@ namespace HH_RU_ParserService.Migrations
                 CREATE TABLE Employments(Id varchar(63) not null primary key, Name varchar(63) not null unique);
 
                 CREATE TABLE Brandings(Id varchar(255) not null primary key, 
-                    Type not null unique, Tariff null unique);
+                    Type varchar(255) not null unique, Tariff varchar(255) null unique);
 
                 CREATE TABLE InsidersInterviews(Id varchar(255) not null primary key,
                     Url varchar(255) not null);
