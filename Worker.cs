@@ -6,10 +6,12 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace HH_RU_ParserService
 {
@@ -18,13 +20,23 @@ namespace HH_RU_ParserService
         ILogger<WindowsBackgroundService> logger) : BackgroundService
     {
         private int page = 0;
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            var csharpQueryUrlEncoded = HttpUtility.UrlEncode("C#");
             try
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    await worker.ImportVacanciesFromHH_RU_ViaPI_ToPostgresAsync(page);
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "between1And3", areaId: 71, schedule: "fullDay");
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "noExperience", areaId: 71, schedule: "fullDay");
+
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "between1And3", areaId: 71);
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "noExperience", areaId: 71); 
+                    
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "between1And3");
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "noExperience");
+
                     logger.LogWarning($"Vacancies imported {DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm")}");
 
                     await Task.Delay(TimeSpan.FromDays(1), stoppingToken);
@@ -59,13 +71,34 @@ namespace HH_RU_ParserService
             _logger = logger;
         }
 
-        public async Task ImportVacanciesFromHH_RU_ViaPI_ToPostgresAsync(int page)
+        public async Task ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(string text, string employment = "full", string schedule = "remote", string experience = "noExperience", int? areaId = null, string[] searchFields = null, int page = 0)
         {
-            var httpResponseMessage = await httpClient.GetAsync($"https://api.hh.ru/vacancies?text=C%23&search_field=name&employment=full&schedule=remote&page={page}&experience=noExperience");
-
-            if (httpResponseMessage.IsSuccessStatusCode)
+            HttpResponseMessage responseMessage = null;
+            if (searchFields is null)
             {
-                Root root = await JsonSerializer.DeserializeAsync<Root>(await httpResponseMessage.Content.ReadAsStreamAsync());
+                if (areaId is null)
+                {
+                    responseMessage = await httpClient.GetAsync($"https://api.hh.ru/vacancies?text={text}&employment={employment}&schedule={schedule}&page={page}&experience={experience}");
+                }
+                else
+                {
+                    responseMessage = await httpClient.GetAsync($"https://api.hh.ru/vacancies?text={text}&employment={employment}&schedule={schedule}&page={page}&experience={experience}&areaId={areaId}");
+                }
+            }
+            else
+            {
+                if (areaId is null)
+                {
+                    responseMessage = await httpClient.GetAsync($"https://api.hh.ru/vacancies?text={text}&employment={employment}&schedule={schedule}&page={page}&experience={experience}&{string.Join('&', searchFields.Select(sf => $"search_field={sf}"))}");
+                }
+                else
+                {
+                    responseMessage = await httpClient.GetAsync($"https://api.hh.ru/vacancies?text={text}&employment={employment}&schedule={schedule}&page={page}&experience={experience}&{string.Join('&', searchFields.Select(sf => $"search_field={sf}"))}&areaId={areaId}");
+                }
+            }
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                Root root = await JsonSerializer.DeserializeAsync<Root>(await responseMessage.Content.ReadAsStreamAsync());
 
                 using (NpgsqlConnection npgsqlConnection = new NpgsqlConnection(_configuration.GetConnectionString("DefaultConnection")))
                 {
@@ -253,7 +286,7 @@ namespace HH_RU_ParserService
                             });
                         }
 
-                        
+
 
                         if (item.Snippet != null)
                         {
@@ -264,7 +297,7 @@ namespace HH_RU_ParserService
                         }
                     }
                 }
-                await ImportVacanciesFromHH_RU_ViaPI_ToPostgresAsync(++page);
+                await ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(text, employment, schedule, experience, areaId, searchFields, ++page);
             }
         }
     }
