@@ -68,12 +68,7 @@ namespace HH_RU_ParserService.Migrations
                     Name varchar(255) not null unique,
                     Url varchar(255) not null unique);
 
-                CREATE TABLE Salaries(Id varchar(255) not null unique,
-                    SalaryFrom int null,
-                    SalaryTo int null,
-                    Currency varchar(255) not null,
-                    Gross boolean null);
-
+                
                 CREATE TABLE Types(Id varchar(63) not null primary key unique,
                     Name varchar(63) not null unique);
 
@@ -147,6 +142,12 @@ namespace HH_RU_ParserService.Migrations
                     BrandingId varchar(255) null,
                     FOREIGN KEY (BrandingId)
                     REFERENCES Brandings(Id));
+                CREATE TABLE Salaries(Id varchar(255) not null unique,
+                    SalaryFrom int null,
+                    SalaryTo int null,
+                    Currency varchar(255) not null,
+                    Gross boolean null,
+                    FOREIGN KEY(Id) REFERENCES Items(Id));
 
                 CREATE TABLE Snippets(Id varchar(255) not null unique primary key,
                     FOREIGN KEY (Id) REFERENCES Items(Id),
