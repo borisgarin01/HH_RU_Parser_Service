@@ -144,7 +144,7 @@ namespace HH_RU_ParserService.Migrations
                     REFERENCES Employments(Id),
                     IsAdvVacancy boolean null,
                     AcceptIncompleteResumes boolean null,
-                    BrandingId varchar(255) not null,
+                    BrandingId varchar(255) null,
                     FOREIGN KEY (BrandingId)
                     REFERENCES Brandings(Id));
 
