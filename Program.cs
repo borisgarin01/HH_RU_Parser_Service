@@ -1,4 +1,3 @@
-using FirebirdSql.Data.Services;
 using FluentMigrator.Runner;
 using HH_RU_ParserService.Migrations;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +27,10 @@ namespace HH_RU_ParserService
          b => b
              // Use SQLite
              .AddPostgres()
+             .ConfigureGlobalProcessorOptions(opt =>
+             {
+                 opt.ProviderSwitches = "Force Quote=false";
+             })
              // The SQLite connection string
              .WithGlobalConnectionString(options => builder.Configuration.GetConnectionString("DefaultConnection"))
              // Specify the assembly with the migrations

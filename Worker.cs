@@ -5,8 +5,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,11 +29,6 @@ namespace HH_RU_ParserService
 
                     await Task.Delay(TimeSpan.FromDays(1), stoppingToken);
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                // When the stopping token is canceled, for example, a call made from services.msc,
-                // we shouldn't exit with a non-zero exit code. In other words, this is expected...
             }
             catch (Exception ex)
             {
@@ -78,76 +73,201 @@ namespace HH_RU_ParserService
                     {
                         if (item.Address != null)
                         {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Addresses\" (\"City\",\"Street\",\"Building\",\"Lat\",\"Lng\",\"Raw\",\"Id\") VALUES(@City,@Street,@Building,@Lat,@Lng,@Raw,@Id);", new { item.Address.City, item.Address.Street, item.Address.Building, item.Address.Lat, item.Address.Lng, item.Address.Raw, item.Address.Id });
+                            await npgsqlConnection.ExecuteAsync(@"
+                                INSERT INTO Addresses 
+                                    (City,Street,Building,Lat,Lng,Description,Raw,Id) 
+                                    VALUES(@City,@Street,@Building,@Lat,@Lng,@Description,@Raw,@Id) ON CONFLICT DO NOTHING;",
+                                    new
+                                    {
+                                        item.Address.City,
+                                        item.Address.Street,
+                                        item.Address.Building,
+                                        item.Address.Lat,
+                                        item.Address.Lng,
+                                        item.Address.Description,
+                                        item.Address.Raw,
+                                        item.Address.Id
+                                    });
                         }
                         if (item.Area != null)
                         {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Areas\" (\"Id\", \"Name\", \"Url\") VALUES(@Id, @Name, @URL);", new { item.Area.Id, item.Area.Name, item.Area.Url });
+                            await npgsqlConnection.ExecuteAsync(@"
+                                INSERT INTO Areas 
+                                (Id, Name, Url) 
+                                VALUES(@Id, @Name, @URL) ON CONFLICT DO NOTHING;",
+                                new
+                                {
+                                    item.Area.Id,
+                                    item.Area.Name,
+                                    item.Area.Url
+                                });
                         }
+
                         if (item.Branding != null)
                         {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Brandings\" (\"Type\", \"Tariff\") VALUES(@Type, @Tariff);", new { item.Branding.Type, item.Branding.Tariff });
+                            await npgsqlConnection.ExecuteAsync(@"INSERT INTO Brandings (Id, Type, Tariff) VALUES(@Id, @Type, @Tariff) ON CONFLICT DO NOTHING;", new { item.Id, item.Branding.Type, item.Branding.Tariff });
                         }
-
-                        if (item.Employer != null)
-                        {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Employers\"(\"Id\", \"Name\", \"URL\", \"Alternate_URL\", \"Vacancies_URL\", \"Accredited_It_Employer\", \"Trusted\") VALUES(@Id, @Name, @URL, @Alternate_URL, @Vacancies_URL, @Accredited_It_Employer, @Trusted);", new { item.Employer.Id, item.Employer.Name, item.Employer.Url, Alternate_Url = item.Employer.AlternateUrl, Vacancies_Url = item.Employer.VacanciesUrl, Accredited_It_Employer = item.Employer.AccreditedItEmployer, item.Employer.Trusted });
-                        }
-
-                        if (item.Employment != null)
-                        {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Employments\"(\"Id\", \"Name\") VALUES(@Id, @Name);", new { item.Employment.Id, item.Employment.Name });
-                        }
-
-                        if (item.Experience != null)
-                        {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Experiences\"(\"Id\", \"Name\") VALUES(@Id, @Name);", new { item.Experience.Id, item.Experience.Name });
-                        }
-
-                        if (item.InsiderInterview != null)
-                        {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"InsidersInterviews\"(\"Id\", \"URL\") VALUES(@Id, @URL);", new { item.InsiderInterview.Id, item.InsiderInterview.Url });
-                        }
-
-                        await npgsqlConnection.ExecuteAsync("INSERT INTO \"Items\"(\"Id\", \"Premium\", \"Name\", \"Has_Test\", \"Response_Letter_Required\", \"Created_At\", \"Archived\", \"Apply_Alternate_URL\", \"Show_Logo_In_Search\", \"URL\", \"Alternate_URL\", \"Accept_Temporary\", \"Accept_Incomplete_Resumes\", \"Is_Adv_Vacancy\") VALUES(@Id, @Premium, @Name, @Has_Test, @Response_Letter_Required, @Created_At, @Archived, @Apply_Alternate_URL, @Show_Logo_In_Search, @URL, @Alternate_URL, @Accept_Temporary, @Accept_Incomplete_Resumes, @Is_Adv_Vacancy);", new { item.Id, item.Premium, item.Name, Has_Test = item.HasTest, Response_Letter_Required = item.ResponseLetterRequired, Created_At = item.CreatedAt, item.Archived, Apply_Alternate_URL = item.ApplyAlternateUrl, Show_Logo_In_Search = item.ShowLogoInSearch, item.Url, Alternate_URL = item.AlternateUrl, Accept_Temporary = item.AcceptTemporary, Accept_Incomplete_Resumes = item.AcceptIncompleteResumes, Is_Adv_Vacancy = item.IsAdvVacancy });
 
                         if (item.Employer != null)
                         {
                             if (item.Employer.LogoUrls != null)
                             {
-                                await npgsqlConnection.ExecuteAsync("INSERT INTO \"Logo_URLs\"(\"_240\", \"_90\", \"Original\") VALUES(@_240, @_90, @Original)", new { item.Employer.LogoUrls._240, item.Employer.LogoUrls._90, item.Employer.LogoUrls.Original });
+                                await npgsqlConnection.ExecuteAsync(@"INSERT INTO LogosUrls(_240, _90, Original) 
+                                    VALUES(@_240, @_90, @Original) 
+                                        ON CONFLICT DO NOTHING;", new
+                                {
+                                    item.Employer.LogoUrls._240,
+                                    item.Employer.LogoUrls._90,
+                                    item.Employer.LogoUrls.Original
+                                });
                             }
-                        }
-                        if (item.Address != null)
-                        {
-                            if (item.Address.Metro != null)
+
+                            await npgsqlConnection.ExecuteAsync(@"INSERT INTO Employers(Id, Name, URL, AlternateURL, 
+                                VacanciesURL, AccreditedItEmployer, Trusted, LogosUrlsOriginal) 
+                                    VALUES(@Id, @Name, @URL, @Alternate_URL, @Vacancies_URL, @Accredited_It_Employer, 
+                                        @Trusted, @LogosUrlsOriginal) 
+                                    ON CONFLICT DO NOTHING;", new
                             {
-                                await npgsqlConnection.ExecuteAsync("INSERT INTO \"Metros\"(\"Station_Name\", \"Line_Name\", \"Station_Id\", \"Line_Id\", \"Lat\", \"Lng\") VALUES(@Station_Name, @Line_Name, @Station_Id, @Line_Id, @Lat, @Lng);", new { Station_Name = item.Address.Metro.StationName, Line_Name = item.Address.Metro.LineName, Station_Id = item.Address.Metro.StationId, Line_Id = item.Address.Metro.LineId, item.Address.Metro.Lat, item.Address.Metro.Lng });
-                            }
+
+                                item.Employer.Id,
+                                item.Employer.Name,
+                                item.Employer.Url,
+                                Alternate_Url = item.Employer.AlternateUrl,
+                                Vacancies_Url = item.Employer.VacanciesUrl,
+                                Accredited_It_Employer = item.Employer.AccreditedItEmployer,
+                                item.Employer.Trusted,
+                                LogosUrlsOriginal = item.Employer.LogoUrls?.Original
+                            });
+                        }
+
+                        if (item.Employment != null)
+                        {
+                            await npgsqlConnection.ExecuteAsync("INSERT INTO Employments(Id, Name) VALUES(@Id, @Name) ON CONFLICT DO NOTHING;", new
+                            {
+                                item.Employment.Id,
+                                item.Employment.Name
+                            });
+                        }
+
+                        if (item.Experience != null)
+                        {
+                            await npgsqlConnection.ExecuteAsync("INSERT INTO Experiences(Id, Name) VALUES(@Id, @Name) ON CONFLICT DO NOTHING;", new
+                            {
+                                item.Experience.Id,
+                                item.Experience.Name
+                            });
+                        }
+
+                        if (item.InsiderInterview != null)
+                        {
+                            await npgsqlConnection.ExecuteAsync("INSERT INTO InsidersInterviews(Id, URL) VALUES(@Id, @URL) ON CONFLICT DO NOTHING;", new
+                            {
+                                item.InsiderInterview.Id,
+                                item.InsiderInterview.Url
+                            });
                         }
 
                         if (item.Salary != null)
                         {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Salaries\"(\"From\", \"To\", \"Currency\", \"Gross\") VALUES(@From, @To, @Currency, @Gross)", new { item.Salary.From, item.Salary.To, item.Salary.Currency, item.Salary.Gross });
+                            await npgsqlConnection.ExecuteAsync("INSERT INTO Salaries(Id, SalaryFrom, SalaryTo, Currency, Gross) VALUES(@Id, @SalaryFrom, @SalaryTo, @Currency, @Gross) ON CONFLICT DO NOTHING;", new
+                            {
+                                item.Id,
+                                SalaryFrom = item.Salary.From,
+                                SalaryTo = item.Salary.To,
+                                item.Salary.Currency,
+                                item.Salary.Gross
+                            });
                         }
 
-                        if (item.Schedule != null)
+                        if (item.Address != null)
                         {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Schedules\"(\"Id\", \"Name\") VALUES(@Id, @Name);", new { item.Schedule.Id, item.Schedule.Name });
-                        }
-
-                        if (item.Snippet != null)
-                        {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Snippets\"(\"Requirement\", \"Responsibility\") VALUES(@Requirement, @Responsibility);", new { item.Snippet.Requirement, item.Snippet.Responsibility });
+                            if (item.Address.Metro != null)
+                            {
+                                await npgsqlConnection.ExecuteAsync("INSERT INTO Metros(StationName, LineName, StationId, LineId, Lat, Lng) VALUES(@StationName, @LineName, @StationId, @LineId, @Lat, @Lng) ON CONFLICT DO NOTHING;",
+                                    new
+                                    {
+                                        item.Address.Metro.StationName,
+                                        item.Address.Metro.LineName,
+                                        item.Address.Metro.StationId,
+                                        item.Address.Metro.LineId,
+                                        item.Address.Metro.Lat,
+                                        item.Address.Metro.Lng
+                                    });
+                            }
                         }
 
                         if (item.Type != null)
                         {
-                            await npgsqlConnection.ExecuteAsync("INSERT INTO \"Types\"(\"Name\") VALUES(@Name);", new { item.Type.Name });
+                            await npgsqlConnection.ExecuteAsync("INSERT INTO Types(Name, Id) VALUES(@Name, @Id) ON CONFLICT DO NOTHING;", new { item.Type.Name, item.Type.Id });
                         }
+
+                        if (item.Schedule != null)
+                        {
+                            await npgsqlConnection.ExecuteAsync("INSERT INTO Schedules(Id, Name) VALUES(@Id, @Name) ON CONFLICT DO NOTHING;", new
+                            {
+                                item.Schedule.Id,
+                                item.Schedule.Name
+                            });
+                        }
+
+                        string addressId;
+                        if (item.Address != null && !string.IsNullOrWhiteSpace(item.Address.Id))
+                            addressId = item.Address.Id;
+                        else
+                            addressId = null;
+
+                        await npgsqlConnection.ExecuteAsync(@"INSERT INTO Items
+                        (
+                            Id, Premium, Name, HasTest, ResponseLetterRequired, AreaId, TypeId, AddressId, 
+                            PublishedAt, CreatedAt, Archived, ApplyAlternateUrl, ShowLogoInSearch, InsiderInterviewId, Url, 
+                            AlternateUrl, EmployerId, ScheduleId, AcceptTemporary, AcceptIncompleteResumes,
+                            EmploymentId, IsAdvVacancy, ExperienceId) 
+                        VALUES
+                        (
+                            @Id, @Premium, @Name, @HasTest, @ResponseLetterRequired, @AreaId, @TypeId, @AddressId,
+                            @PublishedAt, @CreatedAt, @Archived, @ApplyAlternateUrl, @ShowLogoInSearch, @InsiderInterviewId, @Url,
+                            @AlternateUrl, @EmployerId, @ScheduleId, @AcceptTemporary, @AcceptIncompleteResumes, @EmploymentId, @IsAdvVacancy, @ExperienceId) ON CONFLICT DO NOTHING;", new
+                        {
+                            item.Id,
+                            item.Premium,
+                            item.Name,
+                            item.HasTest,
+                            ResponseLetterRequired = item.ResponseLetterRequired.HasValue ? item.ResponseLetterRequired.Value : false,
+                            AreaId = item.Area?.Id,
+                            TypeId = item.Type.Id,
+                            AddressId = addressId,
+                            item.PublishedAt,
+                            item.CreatedAt,
+                            item.Archived,
+                            item.ApplyAlternateUrl,
+                            ShowLogoInSearch = item.ShowLogoInSearch.HasValue ? item.ShowLogoInSearch.Value : false,
+                            InsiderInterviewId = item.InsiderInterview?.Id,
+                            item.Url,
+                            item.AlternateUrl,
+                            EmployerId = item.Employer is not null && !string.IsNullOrWhiteSpace(item.Employer.Id) ? item.Employer.Id : string.Empty,
+                            ScheduleId = !string.IsNullOrWhiteSpace(item.Schedule?.Id) ? item.Schedule?.Id : null,
+                            item.AcceptTemporary,
+                            item.AcceptIncompleteResumes,
+                            EmploymentId = item.Employment?.Id,
+                            item.IsAdvVacancy,
+                            ExperienceId = item.Experience.Id
+                        });
+
+                        if (item.Snippet != null)
+                        {
+                            string requirement = !string.IsNullOrWhiteSpace(item.Snippet.Requirement) ? item.Snippet.Requirement : null;
+                            string responsibility = !string.IsNullOrWhiteSpace(item.Snippet.Responsibility) ? item.Snippet.Requirement : null;
+
+                            await npgsqlConnection.ExecuteAsync("INSERT INTO Snippets(Id, Requirement, Responsibility) VALUES(@Id, @Requirement, @Responsibility) ON CONFLICT DO NOTHING;", new { item.Id, requirement, responsibility });
+                        }
+
+
+
+
+
                     }
 
-                    await npgsqlConnection.ExecuteAsync("INSERT INTO \"Roots\"(\"Found\", \"Pages\", \"Per_Page\", \"Alternate_URL\") VALUES(@Found, @Pages, @Per_Page, @Alternate_URL);", new { root.Found, root.Pages, Per_Page = root.PerPage, Alternate_URL = root.AlternateUrl });
+                    await npgsqlConnection.ExecuteAsync("INSERT INTO Roots(Found, Pages, PerPage, AlternateURL) VALUES(@Found, @Pages, @PerPage, @AlternateURL) ON CONFLICT DO NOTHING;", new { root.Found, root.Pages, root.PerPage, root.AlternateUrl });
                 }
                 await ImportVacanciesFromHH_RU_ViaPI_ToPostgresAsync(++page);
             }
