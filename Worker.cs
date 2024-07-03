@@ -75,17 +75,17 @@ namespace HH_RU_ParserService
                         {
                             await npgsqlConnection.ExecuteAsync(@"
                                 INSERT INTO Addresses 
-                                    (City,Street,Building,Lat,Lng,Description,Raw,Id) 
-                                    VALUES(@City,@Street,@Building,@Lat,@Lng,@Description,@Raw,@Id) ON CONFLICT DO NOTHING;",
+                                    (City,Street,Building,Lat,Lng,Raw,Id) 
+                                    VALUES(@City,@Street,@Building,@Lat,@Lng,@Raw,@Id) 
+                                ON CONFLICT DO NOTHING;",
                                     new
                                     {
-                                        item.Address.City,
-                                        item.Address.Street,
-                                        item.Address.Building,
+                                        City = !string.IsNullOrWhiteSpace(item.Address.City) ? item.Address.City : "Not set",
+                                        Street = !string.IsNullOrWhiteSpace(item.Address.Street) ? item.Address.Street : "Not set",
+                                        Building = !string.IsNullOrWhiteSpace(item.Address.Building) ? item.Address.Building : "Not set",
                                         item.Address.Lat,
                                         item.Address.Lng,
-                                        item.Address.Description,
-                                        item.Address.Raw,
+                                        Raw = !string.IsNullOrWhiteSpace(item.Address.Raw) ? item.Address.Raw : "Not set",
                                         item.Address.Id
                                     });
                         }
@@ -262,14 +262,7 @@ namespace HH_RU_ParserService
 
                             await npgsqlConnection.ExecuteAsync("INSERT INTO Snippets(Id, Requirement, Responsibility) VALUES(@Id, @Requirement, @Responsibility) ON CONFLICT DO NOTHING;", new { item.Id, requirement, responsibility });
                         }
-
-
-
-
-
                     }
-
-                    await npgsqlConnection.ExecuteAsync("INSERT INTO Roots(Found, Pages, PerPage, AlternateURL) VALUES(@Found, @Pages, @PerPage, @AlternateURL) ON CONFLICT DO NOTHING;", new { root.Found, root.Pages, root.PerPage, root.AlternateUrl });
                 }
                 await ImportVacanciesFromHH_RU_ViaPI_ToPostgresAsync(++page);
             }
