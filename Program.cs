@@ -1,5 +1,7 @@
 using FluentMigrator.Runner;
+using HH_RU_ParserService.Http;
 using HH_RU_ParserService.Migrations;
+using HH_RU_ParserService.PostgreSQL;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,6 +15,10 @@ namespace HH_RU_ParserService
         private static void Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
+
+            builder.Services.AddSingleton<VacanciesRequesterAndExtractorFromHttpResponse>();
+            builder.Services.AddSingleton<VacanciesToPostresImporter>();
+
             builder.Services.AddWindowsService(options => options.ServiceName = "HH RU Parser Service");
             builder.Configuration.SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)).AddJsonFile("appsettings.json");
             builder.Services.AddSingleton<Worker>();
