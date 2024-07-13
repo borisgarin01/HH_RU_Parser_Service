@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace HH_RU_ParserService
+namespace Models
 {
     public sealed class WindowsBackgroundService(
         Worker worker,
@@ -18,14 +18,10 @@ namespace HH_RU_ParserService
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "between1And3", areaId: 71, schedule: "fullDay");
-                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "noExperience", areaId: 71, schedule: "fullDay");
-
-                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "between1And3", areaId: 71);
-                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "noExperience", areaId: 71); 
-                    
-                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "between1And3");
-                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "noExperience");
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "noExperience", schedule: "remote");
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "between1And3", schedule: "remote");
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "between1And3", schedule: "fullDay",areaId:71);
+                    await worker.ImportVacanciesFromHH_RU_ViaAPI_ToPostgresAsync(csharpQueryUrlEncoded, experience: "noExperience", schedule: "fullDay",areaId:71);
 
                     logger.LogWarning($"Vacancies imported {DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm")}");
 

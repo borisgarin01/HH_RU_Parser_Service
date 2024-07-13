@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HH_RU_ParserService.Migrations
+namespace Models.Migrations
 {
     [Migration(1, "InitialMigration_07_04_2024_14_45")]
     public class InitialMigration : Migration

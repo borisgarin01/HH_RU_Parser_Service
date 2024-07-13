@@ -1,14 +1,14 @@
 using FluentMigrator.Runner;
-using HH_RU_ParserService.Http;
-using HH_RU_ParserService.Migrations;
-using HH_RU_ParserService.PostgreSQL;
+using Models.Http;
+using Models.Migrations;
+using Models.PostgreSQL;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Reflection;
 
-namespace HH_RU_ParserService
+namespace Models
 {
     public class Program
     {

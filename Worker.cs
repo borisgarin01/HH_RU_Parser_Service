@@ -1,11 +1,11 @@
-using HH_RU_ParserService.Http;
-using HH_RU_ParserService.Models;
-using HH_RU_ParserService.PostgreSQL;
+using Models.Http;
+using Models.Models;
+using Models.PostgreSQL;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
-namespace HH_RU_ParserService
+namespace Models
 {
     public class Worker
     {

@@ -1,11 +1,11 @@
 ﻿using Dapper;
-using HH_RU_ParserService.Models;
+using Models.Models;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace HH_RU_ParserService.PostgreSQL
+namespace Models.PostgreSQL
 {
     public sealed class VacanciesToPostresImporter
     {
@@ -109,14 +109,6 @@ namespace HH_RU_ParserService.PostgreSQL
                         });
                     }
 
-                    if (item.InsiderInterview != null)
-                    {
-                        await npgsqlConnection.ExecuteAsync("INSERT INTO InsidersInterviews(Id, URL) VALUES(@Id, @URL) ON CONFLICT DO NOTHING;", new
-                        {
-                            item.InsiderInterview.Id,
-                            item.InsiderInterview.Url
-                        });
-                    }
 
                     if (item.Address != null)
                     {
@@ -158,13 +150,13 @@ namespace HH_RU_ParserService.PostgreSQL
                     await npgsqlConnection.ExecuteAsync(@"INSERT INTO Items
                         (
                             Id, Premium, Name, HasTest, ResponseLetterRequired, AreaId, TypeId, AddressId, 
-                            PublishedAt, CreatedAt, Archived, ApplyAlternateUrl, ShowLogoInSearch, InsiderInterviewId, Url, 
+                            PublishedAt, CreatedAt, Archived, ApplyAlternateUrl, ShowLogoInSearch, Url, 
                             AlternateUrl, EmployerId, ScheduleId, AcceptTemporary, AcceptIncompleteResumes,
                             EmploymentId, IsAdvVacancy, ExperienceId) 
                         VALUES
                         (
                             @Id, @Premium, @Name, @HasTest, @ResponseLetterRequired, @AreaId, @TypeId, @AddressId,
-                            @PublishedAt, @CreatedAt, @Archived, @ApplyAlternateUrl, @ShowLogoInSearch, @InsiderInterviewId, @Url,
+                            @PublishedAt, @CreatedAt, @Archived, @ApplyAlternateUrl, @ShowLogoInSearch, @Url,
                             @AlternateUrl, @EmployerId, @ScheduleId, @AcceptTemporary, @AcceptIncompleteResumes, @EmploymentId, @IsAdvVacancy, @ExperienceId) ON CONFLICT DO NOTHING;", new
                     {
                         item.Id,
@@ -180,7 +172,6 @@ namespace HH_RU_ParserService.PostgreSQL
                         item.Archived,
                         item.ApplyAlternateUrl,
                         ShowLogoInSearch = item.ShowLogoInSearch.HasValue ? item.ShowLogoInSearch.Value : false,
-                        InsiderInterviewId = item.InsiderInterview?.Id,
                         item.Url,
                         item.AlternateUrl,
                         EmployerId = item.Employer is not null && !string.IsNullOrWhiteSpace(item.Employer.Id) ? item.Employer.Id : string.Empty,

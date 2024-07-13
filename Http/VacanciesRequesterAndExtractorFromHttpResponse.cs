@@ -1,10 +1,10 @@
-﻿using HH_RU_ParserService.Models;
+﻿using Models.Models;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace HH_RU_ParserService.Http
+namespace Models.Http
 {
     public sealed class VacanciesRequesterAndExtractorFromHttpResponse
     {
