@@ -11,8 +11,6 @@ namespace HH_RU_ParserService
         Worker worker,
         ILogger<WindowsBackgroundService> logger) : BackgroundService
     {
-        private int page = 0;
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var csharpQueryUrlEncoded = HttpUtility.UrlEncode("C#");
